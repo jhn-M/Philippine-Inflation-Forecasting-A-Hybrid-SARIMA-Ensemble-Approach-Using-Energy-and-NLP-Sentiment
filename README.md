@@ -88,10 +88,11 @@ Stationarity and order selection:
 The SARIMA-XGBRF ensemble achieved the best performance across MSE and RMSE, representing a **10.9% reduction in RMSE** over the SARIMA baseline (0.8044 vs 0.9031). All three correction models consistently outperformed the baseline, confirming that exogenous macroeconomic features add meaningful predictive signal beyond what SARIMA captures alone.
 
 ### Baseline SARIMA Forecast
-*[Plot — to be updated]*
+<img width="2085" height="735" alt="prelimenary_plot" src="https://github.com/user-attachments/assets/eff86a98-2474-463d-934a-3b2b93bad2ea" />
+
 
 ### Model Evaluation Plot
-*[Plot — to be updated]*
+<img width="2065" height="1185" alt="prelimenary_plot1" src="https://github.com/user-attachments/assets/6899df20-8687-4ab8-884b-982b5d25761b" />
 
 ### Final 2-Month Ahead Forecast
 
