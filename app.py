@@ -1,3 +1,4 @@
+import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,8 +11,11 @@ import warnings
 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
+# 0. CONFIG STREAMLIT PAGE TO WIDE LAYOUT (PowerBI Style)
+st.set_page_config(layout="wide", page_title="Macro Nexus Dashboard")
+
 # =====================================================================
-# 1. DATA SIMULATION & COMPREHENSIVE FIX
+# 1. DATA SIMULATION
 # =====================================================================
 dates = pd.date_range(start="2021-01-01", end="2026-05-01", freq="MS")
 np.random.seed(42)
@@ -39,7 +43,7 @@ X_future = df_clean[df_clean['inflation'].isna()][['sentiment_lagged', 'oil_bren
 df_historical = df_clean[df_clean['inflation'].notna()].copy()
 
 # =====================================================================
-# 2. RUN PIPELINE CALCULATIONS FOR THE VISUALS
+# 2. RUN PIPELINE CALCULATIONS
 # =====================================================================
 # Validation Split (80/20)
 split_idx = int(len(df_historical) * 0.8)
@@ -88,10 +92,9 @@ fig = plt.figure(figsize=(16, 10), facecolor='#F8F9FA')
 fig.suptitle('📊 MACRO NEXUS PREDICTIVE INSIGHTS DASHBOARD\nPhilippine Inflation, Energy Lags, and News Sentiment Pipeline', 
              fontsize=18, fontweight='bold', color='#1E293B', y=0.97)
 
-# Create structural layout grid grid
 gs = gridspec.GridSpec(nrows=3, ncols=3, figure=fig, height_ratios=[0.3, 1.2, 1.2], wspace=0.25, hspace=0.35)
 
-# --- PANEL 1: KPI SCORECARDS (Row 0) ---
+# --- PANEL 1: KPI SCORECARDS ---
 kpi_labels = ['🎯 PREDICTION HORIZON', '📉 BASELINE SARIMA RMSE', '🚀 HYBRID ENSEMBLE RMSE', '📈 ACCURACY GAIN']
 kpi_values = ['Apr - May 2026\nOut-of-Sample Window', f'{rmse_base:.3f}\nUnivariate Baseline', f'{rmse_ensemble:.3f}\nMulti-Model Corrected', '+10.9%\nError Reduction Layer']
 kpi_colors = ['#0EA5E9', '#64748B', '#D946EF', '#10B981']
@@ -99,37 +102,31 @@ kpi_colors = ['#0EA5E9', '#64748B', '#D946EF', '#10B981']
 for i in range(4):
     ax_kpi = fig.add_subplot(gs[0, :].subgridspec(1, 4)[0, i])
     ax_kpi.set_facecolor('#FFFFFF')
-    ax_kpi.layer = 1
     for spine in ax_kpi.spines.values():
         spine.set_color('#E2E8F0')
         spine.set_linewidth(1.5)
     ax_kpi.get_xaxis().set_visible(False)
     ax_kpi.get_yaxis().set_visible(False)
-    
     ax_kpi.text(0.5, 0.7, kpi_labels[i], transform=ax_kpi.transAxes, ha='center', va='center', fontsize=9, fontweight='bold', color='#64748B')
     ax_kpi.text(0.5, 0.3, kpi_values[i], transform=ax_kpi.transAxes, ha='center', va='center', fontsize=12, fontweight='bold', color=kpi_colors[i])
 
-# --- PANEL 2: INFLATION FORECAST TRAJECTORY TIMELINE (Row 1-2, Left Column) ---
+# --- PANEL 2: INFLATION FORECAST TRAJECTORY TIMELINE ---
 ax_timeline = fig.add_subplot(gs[1:, 0:2])
 ax_timeline.set_facecolor('#FFFFFF')
 ax_timeline.grid(True, linestyle='--', alpha=0.5, color='#E2E8F0')
 
-# Slicing tracking parameters for cleaner focused visual window
 zoom_start = '2025-06-01'
 hist_zoom = df_historical['inflation'][df_historical.index >= zoom_start]
 ax_timeline.plot(hist_zoom.index, hist_zoom.values, color='#0EA5E9', marker='o', linewidth=2.5, label='Historical Real Observed Data')
 
-# Visual Plot Lines
 future_months = X_future.index
 ax_timeline.plot(future_months, prod_base_fcf.values, color='#EF4444', marker='s', linestyle='--', linewidth=2, label='SARIMA Baseline Pipeline')
 ax_timeline.plot(future_months, final_projections, color='#D946EF', marker='D', linewidth=3, label='Hybrid XGBRF Ensemble Track')
 
-# Connection Vectors
 ax_timeline.plot([hist_zoom.index[-1], future_months[0]], [hist_zoom.values[-1], prod_base_fcf.values[0]], color='#EF4444', linestyle=':')
 ax_timeline.plot([hist_zoom.index[-1], future_months[0]], [hist_zoom.values[-1], final_projections[0]], color='#D946EF', linestyle=':')
 ax_timeline.axvline(hist_zoom.index[-1], color='#64748B', linestyle='--', alpha=0.7)
 
-# Annotations over data points
 ax_timeline.text(future_months[0], final_projections[0] + 0.15, f"April: {final_projections[0]:.2f}%", color='#9D174D', fontweight='bold', ha='center')
 ax_timeline.text(future_months[1], final_projections[1] + 0.15, f"May: {final_projections[1]:.2f}%", color='#9D174D', fontweight='bold', ha='center')
 
@@ -137,7 +134,7 @@ ax_timeline.set_title('📈 Core Inflation Forecast Horizon Matrix', fontsize=12
 ax_timeline.set_ylabel('Inflation Target Percentage (%)', fontsize=10, fontweight='bold')
 ax_timeline.legend(loc='upper left', frameon=True, facecolor='#FFFFFF', edgecolor='#E2E8F0')
 
-# --- PANEL 3: EXOGENOUS PRUNING & LAGGED CORRELATIONS (Row 1, Right Column) ---
+# --- PANEL 3: EXOGENOUS PRUNING & LAGGED CORRELATIONS ---
 ax_corr = fig.add_subplot(gs[1, 2])
 ax_corr.set_facecolor('#FFFFFF')
 lags = ['Lag 0', 'Lag 1', 'Lag 2 (Peak)', 'Lag 3', 'Lag 4']
@@ -146,12 +143,10 @@ bars = ax_corr.barh(lags, r_values, color=['#CBD5E1', '#94A3B8', '#0EA5E9', '#38
 ax_corr.bar_label(bars, fmt='r = %.2f', padding=5, fontweight='bold', color='#475569')
 ax_corr.set_title('🛢️ Brent Crude Rolling Mean Lag Correlations', fontsize=11, fontweight='bold', color='#1E293B', loc='left')
 ax_corr.set_xlim(0, 0.9)
-
-# Summary notes for dropped features inside empty plotting layout space
 ax_corr.text(0.05, -0.4, "💡 USD/PHP Feature Pruning Log:\nDROPPED (r < 0.25). Aggressive BSP marketplace\ninterventions suppressed predictive signals.", 
              transform=ax_corr.transAxes, fontsize=9, style='italic', color='#64748B', bbox=dict(facecolor='#F8F9FA', edgecolor='#E2E8F0', boxstyle='round,pad=0.5'))
 
-# --- PANEL 4: BENCHMARK LEADERBOARD & LIMITATIONS (Row 2, Right Column) ---
+# --- PANEL 4: BENCHMARK LEADERBOARD ---
 ax_models = fig.add_subplot(gs[2, 2])
 ax_models.set_facecolor('#FFFFFF')
 models_list = ['SARIMA Baseline', 'Hybrid SARIMA-RF', 'Hybrid SARIMA-XGB', 'Hybrid Ensemble']
@@ -160,11 +155,13 @@ bars_m = ax_models.barh(models_list, rmse_list, color=['#64748B', '#F472B6', '#C
 ax_models.bar_label(bars_m, fmt='%.3f', padding=5, fontweight='bold', color='#475569')
 ax_models.set_title('🔬 Validation Engine Performance Leaderboard', fontsize=11, fontweight='bold', color='#1E293B', loc='left')
 ax_models.set_xlim(0, 1.1)
-
-# Summary text note blocks regarding mathematical limits
 ax_models.text(0.05, -0.4, "⚠️ Residual Signal Alert:\nSARIMA handles baseline seasonality effectively,\nleaving white-noise boundaries that limit downstream ML optimization layers.", 
              transform=ax_models.transAxes, fontsize=8.5, color='#B91C1C', fontweight='bold', bbox=dict(facecolor='#FEF2F2', edgecolor='#FEE2E2', boxstyle='round,pad=0.5'))
 
-# Refine adjustments and project visualization block
 plt.subplots_adjust(top=0.88)
-plt.show()
+
+# =====================================================================
+# 4. STREAMLIT OUTPUT COUPLING (THE MAGIC LINK)
+# =====================================================================
+# This replaces plt.show() and explicitly instructs Streamlit to push the figure to the web page UI
+st.pyplot(fig)
